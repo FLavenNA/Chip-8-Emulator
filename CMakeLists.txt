@@ -17,6 +17,10 @@ else()
     add_compile_options(-Wall -Wextra -Werror)
 endif()
 
+if(CMAKE_BUILD_TYPE STREQUAL "Debug")
+    add_compile_definitions(DEBUG)
+endif()
+
 # This assumes the SDL source is available in SDL
 add_subdirectory(SDL EXCLUDE_FROM_ALL)
 
