@@ -413,7 +413,7 @@ void print_debug_info(chip8_t *chip8)
         // Screen pixels are XOR'd with sprite bits
         // VF (Carry flag) is set if any screen pixels are set off; This is useful
         // for collision detection or other reasons.
-            printf("Draw N (%d) height sprite at coords V%X (0x%02X), V%X, (0x%02X)"
+            printf("Draw N (%d) height sprite at coords V%X (0x%02X), V%X (0x%02X)"
                  "from memory location I (0x%04X). Set VF = 1 if any pixels are turned off.\n", 
                 chip8->inst.N, chip8->inst.X, chip8->V[chip8->inst.X], chip8->inst.Y, 
                 chip8->V[chip8->inst.Y], chip8->I);
@@ -438,7 +438,7 @@ void emulate_instruction(chip8_t *chip8, const config_t config)
     chip8->inst.NN = chip8->inst.opcode & 0x0FF;
     chip8->inst.N = chip8->inst.opcode & 0x0F;
     chip8->inst.X = (chip8->inst.opcode >> 8) & 0x0F;
-    chip8->inst.Y = (chip8->inst.opcode >> 4) & 0x0FF;
+    chip8->inst.Y = (chip8->inst.opcode >> 4) & 0x0F;
 
 #ifdef DEBUG
     print_debug_info(chip8);
