@@ -404,9 +404,19 @@ void print_debug_info(chip8_t *chip8)
             default:
                 break; // Unimplemented or invalid opcode
         }
+        case 0x09:
+            // 0x9XY0: Skips the next instruction if VX does not equal VY. (Usually the next instruction is a jump to skip a code block).
+            printf("Check if V%X (0x%02X) != V%X (0x%02X), skip next instruction if true\n", chip8->inst.X, chip8->V[chip8->inst.X],
+                                                                                             chip8->inst.Y, chip8->V[chip8->inst.Y]);
+            break;
         case 0x0A:
             // 0xANNN: Set index register I to NNN
             printf("Set I to NNN (0x%04X)\n", chip8->inst.NNN);
+            break;
+        case 0x0B:
+            // 0xBNNN: Jumps to the address NNN plus V0
+            printf("Set PC to V0 (0x%02X) + NNN (0x%04x); Result PC = 0x%04X\n", chip8->V[0], chip8->inst.NNN,
+                                                             chip8->inst.NNN + chip8->V[0]);
             break;
         case 0x0D:
         // 0x0DXYN: Draw N height sprite at coordinates X, Y; Read from memory location I
@@ -551,10 +561,20 @@ void emulate_instruction(chip8_t *chip8, const config_t config)
             default:
                 break; // Unimplemented or invalid opcode
         }
-
+    case 0x09:
+        // 0x9XY0: Skips the next instruction if VX does not equal VY. (Usually the next instruction is a jump to skip a code block).
+        if(chip8->inst.N != 0)
+            break;
+        if(chip8->V[chip8->inst.X] != chip8->V[chip8->inst.Y])
+            chip8->PC += 2;
+        break;
     case 0x0A:
         // 0xANNN: Set index register I to NNN
         chip8->I = chip8->inst.NNN;
+        break;
+    case 0x0B:
+        // 0xBNNN: Jumps to the address NNN plus V0
+        chip8->PC = chip8->inst.NNN + chip8->V[0];
         break;
     case 0x0D:
         // 0x0DXYN: Draw N height sprite at coordinates X, Y; Read from memory location I
