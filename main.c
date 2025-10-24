@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <stdint.h>
 #include <stdbool.h>
+#include <time.h>
 #include <SDL3/SDL.h>
 
 typedef struct
@@ -171,7 +172,7 @@ bool set_config_from_args(config_t *config, int argc, char **argv)
 }
 
 // Clear screen / SDL Window to background color
-void sdl_clear_screen(const sdl_t sdl, const config_t config)
+void clear_screen(const sdl_t sdl, const config_t config)
 {
     const uint8_t r = (config.background_color >> 24) & 0xFF;
     const uint8_t g = (config.background_color >> 16) & 0xFF;
@@ -418,6 +419,10 @@ void print_debug_info(chip8_t *chip8)
             printf("Set PC to V0 (0x%02X) + NNN (0x%04x); Result PC = 0x%04X\n", chip8->V[0], chip8->inst.NNN,
                                                              chip8->inst.NNN + chip8->V[0]);
             break;
+        case 0x0C:
+            // 0xCNNN: Set Vx = rand() & NN. rand() creates a number between 0-255 
+            printf("Set V%X = rand() %% 256 & NN (0x%02X)\n", chip8->inst.X, chip8->inst.NN);
+            break;
         case 0x0D:
         // 0x0DXYN: Draw N height sprite at coordinates X, Y; Read from memory location I
         // Screen pixels are XOR'd with sprite bits
@@ -427,6 +432,19 @@ void print_debug_info(chip8_t *chip8)
                  "from memory location I (0x%04X). Set VF = 1 if any pixels are turned off.\n", 
                 chip8->inst.N, chip8->inst.X, chip8->V[chip8->inst.X], chip8->inst.Y, 
                 chip8->V[chip8->inst.Y], chip8->I);
+            break;
+        case 0x0E: 
+            if(chip8->inst.NN == 0x9E) {
+                // 0xEX9E: Skip next instruction if key in VX is pressed
+                printf("Skip next instruction if key in V%X (0x%02X) is pressed, Keypad value %d\n",
+                                                                                                chip8->inst.X, chip8->V[chip8->inst.X],
+                                                                                                chip8->keypad[chip8->V[chip8->inst.X]]);
+            } else if(chip8->inst.NN == 0xA1) {
+                // 0xEX9E: Skip next instruction if key in VX is not pressed
+                printf("Skip next instruction if key in V%X (0x%02X) is not pressed, Keypad value %d\n",
+                                                                                                chip8->inst.X, chip8->V[chip8->inst.X],
+                                                                                                chip8->keypad[chip8->V[chip8->inst.X]]);
+            }
             break;
         default:
             printf("Unimplemented or invalid opcode !\n");
@@ -576,6 +594,10 @@ void emulate_instruction(chip8_t *chip8, const config_t config)
         // 0xBNNN: Jumps to the address NNN plus V0
         chip8->PC = chip8->inst.NNN + chip8->V[0];
         break;
+    case 0x0C:
+        // 0xCNNN: Set Vx = rand() & NN. rand() creates a number between 0-255 
+        chip8->V[chip8->inst.X] = (rand() % 256) & chip8->inst.NN;
+        break;
     case 0x0D:
         // 0x0DXYN: Draw N height sprite at coordinates X, Y; Read from memory location I
         // Screen pixels are XOR'd with sprite bits
@@ -613,7 +635,19 @@ void emulate_instruction(chip8_t *chip8, const config_t config)
                 break;
         }
         break;
-        
+    case 0x0E: 
+        if(chip8->inst.NN == 0x9E) {
+            // 0xEX9E: Skip next instruction if key in VX is pressed
+            if(chip8->keypad[chip8->V[chip8->inst.X]]) {
+                chip8->PC += 2;
+            }
+        } else if(chip8->inst.NN == 0xA1) {
+            // 0xEX9E: Skip next instruction if key in VX is not pressed
+            if(!chip8->keypad[chip8->V[chip8->inst.X]]) {
+                chip8->PC += 2;
+            }
+        }
+        break;
     default:
         break; // Unimplemented or invalid opcode
     }
@@ -646,14 +680,17 @@ int main(int argc, char **argv)
     if (!init_chip8(&chip8, rom_name))
         exit(EXIT_FAILURE);
 
+    // Initial screen clear to background color
+    clear_screen(sdl, config);
+
+    // Seed random number generator
+    srand((uint32_t)time(NULL));
+
     // Main emulator loop
     while (chip8.state != QUIT)
     {
         // Handle user input
         handle_input(&chip8);
-
-        // Initial screen clear to background color
-        //clear_screen(sdl, config);
 
         if(chip8.state == PAUSED) continue;
 
