@@ -1,0 +1,25 @@
+#include "app.h"
+
+// Set up initial emulator configuration from passed in arguments
+bool set_config_from_args(config_t *config, int argc, char **argv)
+{
+
+    // Set defaults
+    *config = (config_t){
+        .window_width = 64,             // Chip-8 original X res
+        .window_height = 32,            // Chip-8 original Y res
+        .foreground_color = 0xFFFFFFFF, // Original color as white fg
+        .background_color = 0x00000000, // Original color as black bg
+        .scale_factor = 20,             // Default res will be 1280x640
+        .pixel_outlines = true,         // Draw pixel outlines by default
+        .insts_per_second = 500,         // Number of instructions to emulate in 1 second (clock rate of CPU)
+    };
+
+    // Override defaults
+    for (int i = 1; i < argc; i++)
+    {
+        (void)argv[i];
+    }
+
+    return true;
+}

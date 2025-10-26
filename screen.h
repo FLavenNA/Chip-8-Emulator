@@ -1,0 +1,20 @@
+#ifndef SCREEN_H
+#define SCREEN_H
+
+#include <SDL3/SDL.h>
+
+#include "app.h"
+#include "chip8.h"
+
+typedef struct
+{
+    SDL_Window *window;
+    SDL_Renderer *renderer;
+} sdl_t;
+
+bool init_sdl(sdl_t *sdl, const config_t *config);
+void clear_screen(const sdl_t sdl, const config_t *config);
+void update_screen(const sdl_t sdl, const config_t *config, const chip8_t *chip8);
+void final_cleanup(const sdl_t sdl);
+
+#endif

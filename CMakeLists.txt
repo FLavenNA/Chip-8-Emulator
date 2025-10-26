@@ -25,7 +25,12 @@ endif()
 add_subdirectory(SDL EXCLUDE_FROM_ALL)
 
 # Create your game executable target as usual
-add_executable(Chip-8-emulator main.c)
+add_executable(Chip-8-emulator 
+    main.c
+    chip8.c
+    instruction_tables.c
+    screen.c
+    app.c)
 
 # Link to the actual SDL3 library.
 target_link_libraries(Chip-8-emulator PRIVATE SDL3::SDL3)
