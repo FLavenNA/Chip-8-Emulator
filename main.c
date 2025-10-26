@@ -19,6 +19,7 @@ typedef struct
     uint32_t background_color; // Background color RGBA8888
     uint32_t scale_factor;     // Chip8 pixel scale by
     bool pixel_outlines;       // Draw pixel outlines
+    uint32_t insts_per_second;  // CHIP8 CPU "clock-rate" or hz
 } config_t;
 
 typedef enum
@@ -160,6 +161,7 @@ bool set_config_from_args(config_t *config, int argc, char **argv)
         .background_color = 0x00000000, // Original color as black bg
         .scale_factor = 20,             // Default res will be 1280x640
         .pixel_outlines = true,         // Draw pixel outlines by default
+        .insts_per_second = 500,         // Number of instructions to emulate in 1 second (clock rate of CPU)
     };
 
     // Override defaults
@@ -232,6 +234,11 @@ void update_screen(const sdl_t sdl, const config_t config, const chip8_t chip8) 
     SDL_RenderPresent(sdl.renderer);
 }
 
+// CHIP8 Keypad     QWERTY
+// 123C             1234
+// 456D             qwer
+// 789E             asdf
+// A0BF             zxcv
 void handle_input(chip8_t *chip8)
 {
     SDL_Event event;
@@ -258,14 +265,117 @@ void handle_input(chip8_t *chip8)
                 }
                 else
                     chip8->state = RUNNING; // Resume
+                    
+            // Map qwerty keys
+            case SDLK_1: 
+                chip8->keypad[0x1] = true;
+                break;
+            case SDLK_2: 
+                chip8->keypad[0x2] = true;
+                break;
+            case SDLK_3: 
+                chip8->keypad[0x3] = true;
+                break;
+            case SDLK_4: 
+                chip8->keypad[0xC] = true;
+                break;
+            case SDLK_Q: 
+                chip8->keypad[0x4] = true;
+                break;
+            case SDLK_W: 
+                chip8->keypad[0x5] = true;
+                break;
+            case SDLK_E: 
+                chip8->keypad[0x6] = true;
+                break;
+            case SDLK_R: 
+                chip8->keypad[0xD] = true;
+                break;
+            case SDLK_A: 
+                chip8->keypad[0x7] = true;
+                break;
+            case SDLK_S: 
+                chip8->keypad[0x8] = true;
+                break;
+            case SDLK_D: 
+                chip8->keypad[0x9] = true;
+                break;
+            case SDLK_F: 
+                chip8->keypad[0xE] = true;
+                break;
+            case SDLK_Z: 
+                chip8->keypad[0xA] = true;
+                break;
+            case SDLK_X: 
+                chip8->keypad[0x0] = true;
+                break;
+            case SDLK_C: 
+                chip8->keypad[0xB] = true;
+                break;
+            case SDLK_V: 
+                chip8->keypad[0xF] = true;
+                break;
             default:
                 break;
             }
             break;
 
         case SDL_EVENT_KEY_UP:
+            switch (event.key.key)
+            {                    
+                // Map qwerty keys
+                case SDLK_1: 
+                    chip8->keypad[0x1] = false;
+                    break;
+                case SDLK_2: 
+                    chip8->keypad[0x2] = false;
+                    break;
+                case SDLK_3: 
+                    chip8->keypad[0x3] = false;
+                    break;
+                case SDLK_4: 
+                    chip8->keypad[0xC] = false;
+                    break;
+                case SDLK_Q: 
+                    chip8->keypad[0x4] = false;
+                    break;
+                case SDLK_W: 
+                    chip8->keypad[0x5] = false;
+                    break;
+                case SDLK_E: 
+                    chip8->keypad[0x6] = false;
+                    break;
+                case SDLK_R: 
+                    chip8->keypad[0xD] = false;
+                    break;
+                case SDLK_A: 
+                    chip8->keypad[0x7] = false;
+                    break;
+                case SDLK_S: 
+                    chip8->keypad[0x8] = false;
+                    break;
+                case SDLK_D: 
+                    chip8->keypad[0x9] = false;
+                    break;
+                case SDLK_F: 
+                    chip8->keypad[0xE] = false;
+                    break;
+                case SDLK_Z: 
+                    chip8->keypad[0xA] = false;
+                    break;
+                case SDLK_X: 
+                    chip8->keypad[0x0] = false;
+                    break;
+                case SDLK_C: 
+                    chip8->keypad[0xB] = false;
+                    break;
+                case SDLK_V: 
+                    chip8->keypad[0xF] = false;
+                    break;
+                default:
+                    break;
+            }
             break;
-
         default:
             break;
         }
@@ -359,21 +469,21 @@ void print_debug_info(chip8_t *chip8)
                                                             chip8->V[chip8->inst.X] & chip8->V[chip8->inst.Y]);
                 break;
             case 3:
-                // 0x08Y3: Sets VX to VX xor VY.
+                // 0x8XY3: Sets VX to VX xor VY.
                 printf("Set register V%X (0x%02X) ^= V%X (0x%02X); Result: 0x%02X\n", 
                                                             chip8->inst.X, chip8->V[chip8->inst.X], 
                                                             chip8->inst.Y, chip8->V[chip8->inst.Y],
                                                             chip8->V[chip8->inst.X] ^ chip8->V[chip8->inst.Y]);
                 break;
             case 4:
-                // 0x08Y4: Adds VY to VX. VF is set to 1 when there's an overflow, and to 0 when there is not.
+                // 0x8XY4: Adds VY to VX. VF is set to 1 when there's an overflow, and to 0 when there is not.
                 printf("Set register V%X (0x%02X) += V%X (0x%02X); VF = 1 if carry; Result: 0x%02X VF=%X\n", 
                                                             chip8->inst.X, chip8->V[chip8->inst.X], 
                                                             chip8->inst.Y, chip8->V[chip8->inst.Y],
                                                             chip8->V[chip8->inst.X] + chip8->V[chip8->inst.Y],
                                                             (uint16_t)(chip8->V[chip8->inst.X] + chip8->V[chip8->inst.Y]) > 255);
             case 5:
-                // 0x08Y5: VY is subtracted from VX. VF is set to 0 when there's an underflow, and 1 when there is not. (i.e. VF set to 1 if VX >= VY and 0 if not)
+                // 0x8XY5: VY is subtracted from VX. VF is set to 0 when there's an underflow, and 1 when there is not. (i.e. VF set to 1 if VX >= VY and 0 if not)
                 printf("Set register V%X (0x%02X) -= V%X (0x%02X); VF = 1 if no borrow; Result: 0x%02X VF=%X\n", 
                                                             chip8->inst.X, chip8->V[chip8->inst.X], 
                                                             chip8->inst.Y, chip8->V[chip8->inst.Y],
@@ -381,14 +491,14 @@ void print_debug_info(chip8_t *chip8)
                                                             chip8->V[chip8->inst.Y] <= chip8->V[chip8->inst.X]);
                 break;
             case 6:
-                // 0x08Y6: Shifts VX to the right by 1, then stores the least significant bit of VX prior to the shift into VF.
+                // 0x8XY6: Shifts VX to the right by 1, then stores the least significant bit of VX prior to the shift into VF.
                 printf("Set register V%X (0x%02X) >>=1  VF = shifted off bit (%X); Result: 0x%02X \n", 
                                                             chip8->inst.X, chip8->V[chip8->inst.X], 
                                                             chip8->V[chip8->inst.X] & 1,
                                                             chip8->V[chip8->inst.X] >> 1);
                 break;
             case 7:
-                // 0x08Y7: VX is subtracted from VY. VF is set to 0 when there's an underflow, and 1 when there is not. (i.e. VF set to 1 if VY >= VX and 0 if not)
+                // 0x8XY7: VX is subtracted from VY. VF is set to 0 when there's an underflow, and 1 when there is not. (i.e. VF set to 1 if VY >= VX and 0 if not)
                 printf("Set register V%X (0x%02X) -= V%X (0x%02X); VF = 1 if no borrow; Result: 0x%02X VF=%X\n", 
                                                             chip8->inst.Y, chip8->V[chip8->inst.Y], 
                                                             chip8->inst.X, chip8->V[chip8->inst.X],
@@ -396,7 +506,7 @@ void print_debug_info(chip8_t *chip8)
                                                             chip8->V[chip8->inst.X] <= chip8->V[chip8->inst.Y]);
                 break;
             case 0XE:
-                // 0x08XYE: Shifts VX to the left by 1, then sets VF to 1 if the most significant bit of VX prior to that shift was set, or to 0 if it was unset.
+                // 0x8XYE: Shifts VX to the left by 1, then sets VF to 1 if the most significant bit of VX prior to that shift was set, or to 0 if it was unset.
                 printf("Set register V%X (0x%02X) <<=1  VF = shifted off bit (%X); Result: 0x%02X \n", 
                                                             chip8->inst.X, chip8->V[chip8->inst.X], 
                                                             chip8->V[chip8->inst.X] & 80 >> 7,
@@ -444,6 +554,57 @@ void print_debug_info(chip8_t *chip8)
                 printf("Skip next instruction if key in V%X (0x%02X) is not pressed, Keypad value %d\n",
                                                                                                 chip8->inst.X, chip8->V[chip8->inst.X],
                                                                                                 chip8->keypad[chip8->V[chip8->inst.X]]);
+            }
+            break;
+        case 0x0F:
+            switch (chip8->inst.NN) {
+            case 0x0A:
+                // 0xFX0A: A key press is awaited, and then stored in VX (blocking operation, all instruction halted until next key event, delay and sound timers should continue processing).
+                printf("Await until a key is pressed; Store key in V%X\n", chip8->inst.X);
+                break;
+            case 0x1E:
+                // 0xFX1E: Adds VX to I. VF is not affected. For non-Amiga CHIP8, does not affect VF
+                printf("I (0x%04X) += V%X (0x%02X); Result (I): 0x%04X\n", chip8->I, chip8->inst.X, 
+                                                                           chip8->V[chip8->inst.X], chip8->I + chip8->V[chip8->inst.X]);
+                break;
+            case 0x07:
+                // 0xFX07: VX = delay timer
+                printf("Set V%X = delay timer value (0x%02X)\n", chip8->inst.X, chip8->delay_timer);
+                break;
+            case 0x15:
+                // 0xFX15: delay timer = VX
+                printf("Set delay timer value = V%X (0x%02X)\n", chip8->inst.X, chip8->V[chip8->inst.X]);
+                break;
+            case 0x18:
+                // 0xFX18: VX = sonud timer
+                printf("Set V%X = sound timer value (0x%02X)\n", chip8->inst.X, chip8->sound_timer);
+                break;
+            case 0x29:
+                // 0xF29: Set register I to sprite location in memory for character in VX (0x0 - 0xF)
+                printf("Set I to sprite location in memory for character in V%X (0x%02X). Result(VX*5) = (0x%02X)\n", 
+                                                                                            chip8->inst.X, chip8->V[chip8->inst.X],
+                                                                                            chip8->V[chip8->inst.X] * 5);
+                break;
+            case 0x33:
+                // 0xFX33: Store BCD representation of VX at memory offset from I
+                // I = hundred's place, I+1 = ten's place, I+2 = one's place;
+                printf("Store BCD representation of V%X (0x%02X) at memory from I (0x%04X)\n", chip8->inst.X,
+                                                                                            chip8->V[chip8->inst.X], chip8->I);
+                break;
+            case 0x55:
+                // 0xFX55: Register dump V0-VX inclusive to memory offset from I;
+                // SCHIP does not increment I, CHIP8 does increment I;
+                printf("Register dump  V0-V%X (0x%02X) inclusive at memory from I (0x%04X)\n", chip8->inst.X,
+                                                                                            chip8->V[chip8->inst.X], chip8->I);
+                break;
+            case 0x65:
+                // 0xFX65: Register load V0-VX inclusive to memory offset from I;
+                // SCHIP does not increment I, CHIP8 does increment I;
+                printf("Register load  V0-V%X (0x%02X) inclusive at memory from I (0x%04X)\n", chip8->inst.X,
+                                                                                            chip8->V[chip8->inst.X], chip8->I);
+                break;
+            default:
+                break;
             }
             break;
         default:
@@ -542,37 +703,33 @@ void emulate_instruction(chip8_t *chip8, const config_t config)
                 chip8->V[chip8->inst.X] &= chip8->V[chip8->inst.Y];
                 break;
             case 3:
-                // 0x08Y3: Sets VX to VX xor VY.
+                // 0x8XY3: Sets VX to VX xor VY.
                 chip8->V[chip8->inst.X] ^= chip8->V[chip8->inst.Y];
                 break;
             case 4:
-                // 0x08Y4: Adds VY to VX. VF is set to 1 when there's an overflow, and to 0 when there is not.
+                // 0x8XY4: Adds VY to VX. VF is set to 1 when there's an overflow, and to 0 when there is not.
                 if((uint16_t)(chip8->V[chip8->inst.X] + chip8->V[chip8->inst.Y]) > 255)
                     chip8->V[0xF] = 1;
 
                 chip8->V[chip8->inst.X] += chip8->V[chip8->inst.Y];
                 break;
             case 5:
-                // 0x08Y5: VY is subtracted from VX. VF is set to 0 when there's an underflow, and 1 when there is not. (i.e. VF set to 1 if VX >= VY and 0 if not)
-                if(chip8->V[chip8->inst.Y] <= chip8->V[chip8->inst.X])
-                    chip8->V[0xF] = 1;
-
+                // 0x8XY5: VY is subtracted from VX. VF is set to 0 when there's an underflow, and 1 when there is not. (i.e. VF set to 1 if VX >= VY and 0 if not)
+                chip8->V[0xF] = (chip8->V[chip8->inst.Y] <= chip8->V[chip8->inst.X]);
                 chip8->V[chip8->inst.X] -= chip8->V[chip8->inst.Y];
                 break;
             case 6:
-                // 0x08Y6: Shifts VX to the right by 1, then stores the least significant bit of VX prior to the shift into VF.
+                // 0x8XY6: Shifts VX to the right by 1, then stores the least significant bit of VX prior to the shift into VF.
                 chip8->V[0xF] = chip8->V[chip8->inst.X] & 1;
                 chip8->V[chip8->inst.X] >>= 1;
                 break;
             case 7:
-                // 0x08Y7: VX is subtracted from VY. VF is set to 0 when there's an underflow, and 1 when there is not. (i.e. VF set to 1 if VY >= VX and 0 if not)
-                if(chip8->V[chip8->inst.X] <= chip8->V[chip8->inst.Y])
-                    chip8->V[0xF] = 1;
-
+                // 0x8XY7: VX is subtracted from VY. VF is set to 0 when there's an underflow, and 1 when there is not. (i.e. VF set to 1 if VY >= VX and 0 if not)
+                chip8->V[0xF] = (chip8->V[chip8->inst.X] <= chip8->V[chip8->inst.Y]);
                 chip8->V[chip8->inst.Y] -= chip8->V[chip8->inst.X];
                 break;
             case 0XE:
-                // 0x08XYE: Shifts VX to the left by 1, then sets VF to 1 if the most significant bit of VX prior to that shift was set, or to 0 if it was unset.
+                // 0x8XYE: Shifts VX to the left by 1, then sets VF to 1 if the most significant bit of VX prior to that shift was set, or to 0 if it was unset.
                 chip8->V[0xF] = (chip8->V[chip8->inst.X] & 0x80) >> 7;
                 chip8->V[chip8->inst.X] <<= 1;
                 break;
@@ -648,8 +805,83 @@ void emulate_instruction(chip8_t *chip8, const config_t config)
             }
         }
         break;
+    case 0x0F:
+        switch (chip8->inst.NN) {
+        case 0x0A:
+            bool any_key_pressed = false;
+            // 0xFX0A: A key press is awaited, and then stored in VX (blocking operation, all instruction halted until next key event, delay and sound timers should continue processing).
+            for (uint8_t i = 0; i < sizeof(chip8->keypad); i++) {
+                if(chip8->keypad[i]) {
+                    chip8->V[chip8->inst.X] = i; // i = key (offset into keypad array)
+                    any_key_pressed = true;
+                    break;
+                }
+            }
+            if(!any_key_pressed)
+                chip8->PC -= 2; // Keep getting the current opcode if no key has been pressed
+            break;
+        case 0x1E:
+            // 0xFX1E: Adds VX to I. VF is not affected. For non-Amiga CHIP8, does not affect VF
+            chip8->I += chip8->V[chip8->inst.X];
+            break;
+        case 0x07:
+            // 0xFX07: VX = delay timer
+            chip8->V[chip8->inst.X] = chip8->delay_timer;
+            break;
+        case 0x15:
+            // 0xFX15: delay timer = VX
+            chip8->delay_timer = chip8->V[chip8->inst.X];
+            break;
+        case 0x18:
+            // 0xFX18: VX = sonud timer
+            chip8->V[chip8->inst.X] = chip8->sound_timer;
+            break;
+        case 0x29:
+            // 0xFX29: Set register I to sprite location in memory for character in VX (0x0 - 0xF)
+            chip8->I = chip8->V[chip8->inst.X] * 5;
+            break;
+        case 0x33:
+            // 0xFX33: Store BCD representation of VX at memory offset from I
+            // I = hundred's place, I+1 = ten's place, I+2 = one's place;
+            uint8_t bcd = chip8->V[chip8->inst.X]; 
+            chip8->ram[chip8->I+2] = bcd % 10;
+            bcd /= 10;
+            chip8->ram[chip8->I+1] = bcd % 10;
+            bcd /= 10;
+            chip8->ram[chip8->I] = bcd; 
+            break;
+        case 0x55:
+            // 0xFX55: Register dump V0-VX inclusive to memory offset from I;
+            // SCHIP does not increment I, CHIP8 does increment I;
+            // Note: Could make this a config flag to use SCHIP or CHIP8 logic for I
+            for (uint8_t i = 0; i <= chip8->inst.X; i++) {
+                chip8->ram[chip8->I + i] = chip8->V[i];
+            }
+            break;
+        case 0x65:
+            // 0xFX65: Register load V0-VX inclusive to memory offset from I;
+            // SCHIP does not increment I, CHIP8 does increment I;
+            for (uint8_t i = 0; i <= chip8->inst.X; i++) {
+                chip8->V[i] = chip8->ram[chip8->I + i];
+            }
+            break;
+        default:
+            break;
+        }
+        break;
     default:
         break; // Unimplemented or invalid opcode
+    }
+}
+
+void update_timers(chip8_t *chip8) {
+    if(chip8->delay_timer > 0) chip8->delay_timer--;
+    if(chip8->sound_timer > 0) {
+        chip8->sound_timer--;
+        // TODO: Play sound
+    }
+    else {
+        // TODO: Stop playing sound
     }
 }
 
@@ -694,19 +926,26 @@ int main(int argc, char **argv)
 
         if(chip8.state == PAUSED) continue;
 
-        // get_time();
+        // get_time() before running instructions;
+        const uint64_t start_frame_time = SDL_GetPerformanceCounter();
 
-        // Emulate Chip-8 instructions
-        emulate_instruction(&chip8, config);
+        // Emulate Chip-8 instructions for this emulator "frame" (60hz)
+        for(uint32_t i = 0; i < config.insts_per_second / 60; i++)
+            emulate_instruction(&chip8, config);
 
-        // get_time() elapsed since last get_time();
+        // get_time() elapsed after running instructions;
+        const uint64_t end_frame_time = SDL_GetPerformanceCounter();
 
-        // Delay for approximately 60hz/60fps
-        // SDL_Delay(16 - time elapsed);
-        SDL_Delay(16);
+        // Delay for approximately 60hz/60fps (16.67ms) or actual time elapsed
+        const double time_elapsed =  (double)((end_frame_time - start_frame_time) / 1000) / SDL_GetPerformanceFrequency();
 
-        // Update
+        SDL_Delay((uint32_t)(16.67f > time_elapsed ? 16.67f - time_elapsed : 0));
+
+        // Update window with changes every 60hz
         update_screen(sdl, config, chip8);
+
+        // Update delay and sound timers every 60hz
+        update_timers(&chip8);
     }
 
     // Final cleanup
