@@ -58,7 +58,7 @@ int main(int argc, char **argv)
         const uint64_t end_frame_time = SDL_GetPerformanceCounter();
 
         // Delay for approximately 60hz/60fps (16.67ms) or actual time elapsed
-        const double time_elapsed =  (double)((end_frame_time - start_frame_time) / 1000) / SDL_GetPerformanceFrequency();
+        const double time_elapsed =  (double)((end_frame_time - start_frame_time) * 1000) / SDL_GetPerformanceFrequency();
 
         SDL_Delay((uint32_t)(16.67f > time_elapsed ? 16.67f - time_elapsed : 0));
 
