@@ -7,7 +7,7 @@
 #include <stdbool.h>
 #include <SDL3/SDL.h>
 
-#include "app.h"
+#include "type_defs.h"
 
 #define NUM_KEYS 16
 
@@ -31,7 +31,7 @@ const static uint8_t KEYMAP[NUM_KEYS][2] = {
     {SDLK_V, 0xF}       // F
 };
 
-typedef struct
+struct instruction
 {
     uint16_t opcode;
     uint16_t NNN; // 12 bit address/constant
@@ -39,10 +39,10 @@ typedef struct
     uint8_t N;    // 4 bit constant
     uint8_t X;    // 4 bit register identifier
     uint8_t Y;    // 4 bit register identifier
-} instruction_t;
+};
 
 // Chip-8 machine object
-typedef struct
+struct chip8
 {
     emulator_state_t state;
     uint8_t ram[4096];
@@ -57,17 +57,18 @@ typedef struct
     bool keypad[16];      // Hexadecimal keypad 0x0 - 0xF
     const char *rom_name; // Currently running ROM
     instruction_t inst;   // Currently executing instruction
-} chip8_t;
+};
 
 typedef void (*instruction_func_t)(chip8_t *chip8, const config_t *config);
 
 bool init_chip8(chip8_t *chip8, const char rom_name[]);
 void handle_input(chip8_t *chip8);
+void handle_audio(chip8_t *chip8, const config_t *config, SDL_AudioStream *stream);
 #ifdef DEBUG
 void print_debug_info(chip8_t *chip8);
 #endif
 void emulate_instruction(chip8_t *chip8, const config_t *config);
-void update_timers(chip8_t *chip8);
+void update_timers(const sdl_t *sdl, chip8_t *chip8);
 
 // Instructions 
 // TODO: Was lazy to name them so made it like this change later maybe

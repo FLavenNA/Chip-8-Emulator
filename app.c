@@ -12,7 +12,10 @@ bool set_config_from_args(config_t *config, int argc, char **argv)
         .background_color = 0x00000000, // Original color as black bg
         .scale_factor = 20,             // Default res will be 1280x640
         .pixel_outlines = true,         // Draw pixel outlines by default
-        .insts_per_second = 500,         // Number of instructions to emulate in 1 second (clock rate of CPU)
+        .insts_per_second = 700,        // Number of instructions to emulate in 1 second (clock rate of CPU)
+        .audio_sample_rate = 44100,     // CD quality
+        .square_wave_freq = 440,        // 440hz for middle A
+        .volume = 3000,                 // INT16_MAX would be max volume
     };
 
     // Override defaults

@@ -3,7 +3,7 @@
 
 #include "app.h"
 #include "chip8.h"
-#include "screen.h"
+#include "sdl.h"
 
 int main(int argc, char **argv)
 {
@@ -44,7 +44,8 @@ int main(int argc, char **argv)
     {
         // Handle user input
         handle_input(&chip8);
-
+        handle_audio(&chip8, &config, sdl.stream);
+        
         if(chip8.state == PAUSED) continue;
 
         // get_time() before running instructions;
@@ -66,7 +67,7 @@ int main(int argc, char **argv)
         update_screen(sdl, &config, &chip8);
 
         // Update delay and sound timers every 60hz
-        update_timers(&chip8);
+        update_timers(&sdl, &chip8);
     }
 
     // Final cleanup

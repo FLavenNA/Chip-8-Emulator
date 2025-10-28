@@ -4,7 +4,9 @@
 #include <stdint.h>
 #include <stdbool.h>
 
-typedef struct
+#include "type_defs.h"
+
+struct config
 {
     uint32_t window_width;     // SDL Window Width
     uint32_t window_height;    // SDL Window Height
@@ -12,15 +14,18 @@ typedef struct
     uint32_t background_color; // Background color RGBA8888
     uint32_t scale_factor;     // Chip8 pixel scale by
     bool pixel_outlines;       // Draw pixel outlines
-    uint32_t insts_per_second;  // CHIP8 CPU "clock-rate" or hz
-} config_t;
+    uint32_t insts_per_second; // CHIP8 CPU "clock-rate" or hz
+    uint32_t square_wave_freq; // Frequency of square wave sound e.g 440hz for middle A
+    uint32_t audio_sample_rate;
+    int16_t volume;            // How loud is sound
+};
 
-typedef enum
+enum emulator_state
 {
     QUIT = 0,
     RUNNING,
     PAUSED,
-} emulator_state_t;
+};
 
 // Set up initial emulator configuration from passed in arguments
 bool set_config_from_args(config_t *config, int argc, char **argv);

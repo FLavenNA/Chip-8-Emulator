@@ -1,6 +1,8 @@
-#include "screen.h"
+#include "sdl.h"
+#include "app.h"
+#include "chip8.h"
 
-bool init_sdl(sdl_t *sdl, const config_t *config)
+bool init_sdl(sdl_t *sdl, config_t *config)
 {
     if (!SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO))
     {
@@ -24,6 +26,29 @@ bool init_sdl(sdl_t *sdl, const config_t *config)
     if (!sdl->renderer)
     {
         SDL_Log("Could not create SDL renderer %s\n", SDL_GetError());
+        return false;
+    }
+
+    SDL_memset(&sdl->want, 0, sizeof(sdl->want)); /* or SDL_zero(want) */
+    // Init audio stuff
+    sdl->want = (SDL_AudioSpec) {
+        .freq = 44100,              // 44100hz "CD" quality
+        .format = SDL_AUDIO_S16LE,  // Signed 16 bit little endian
+        .channels = 1,              // Mono, 1 channel
+    };
+
+    sdl->stream = SDL_OpenAudioDeviceStream(SDL_AUDIO_DEVICE_DEFAULT_PLAYBACK, &sdl->want, NULL, NULL);
+
+    if (!sdl->stream) {
+        SDL_Log("Could not create SDL Audio Stream %s\n", SDL_GetError());
+        return false;
+    }
+
+    if ((sdl->want.freq != sdl->want.freq) ||
+        (sdl->want.format != sdl->want.format) ||
+        (sdl->want.channels != sdl->want.channels))
+    {
+        SDL_Log("Could not get desired Audio Spec\n");
         return false;
     }
 
@@ -95,5 +120,6 @@ void final_cleanup(const sdl_t sdl)
 {
     SDL_DestroyRenderer(sdl.renderer);
     SDL_DestroyWindow(sdl.window);
+    SDL_DestroyAudioStream(sdl.stream);
     SDL_Quit();
 }

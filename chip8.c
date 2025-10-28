@@ -1,4 +1,6 @@
 #include "chip8.h"
+#include "app.h"
+#include "sdl.h"
 #include "instruction_tables.h"
 
 bool init_chip8(chip8_t *chip8, const char rom_name[])
@@ -110,6 +112,33 @@ void handle_input(chip8_t *chip8)
             break;
         }
     }
+}
+
+// TODO: Not sure this is the right way or it works correctly check later
+void handle_audio(chip8_t *chip8, const config_t *config, SDL_AudioStream *stream)
+{
+    // Calculate number of samples to generate based on your audio format
+    int num_samples = config->audio_sample_rate / 75; // generate ~20ms of audio per callback
+    int16_t *temp_buffer = malloc(num_samples * sizeof(int16_t));
+    if (!temp_buffer) return;
+
+    static uint32_t running_sample_index = 0;
+    const int32_t square_wave_period = config->audio_sample_rate / config->square_wave_freq;
+    const int32_t half_square_wave_period = square_wave_period / 2;
+
+    if (chip8->sound_timer == 0) {
+        memset(temp_buffer, 0, num_samples * sizeof(int16_t));
+    } else {
+        for (int i = 0; i < num_samples; i++) {
+            temp_buffer[i] = ((running_sample_index++ / half_square_wave_period) % 2)
+                                ?  config->volume
+                                : -config->volume;
+        }
+    }
+    // Push the generated samples into the SDL_AudioStream
+    SDL_PutAudioStreamData(stream, temp_buffer, num_samples * sizeof(int16_t));
+
+    free(temp_buffer);
 }
 
 #ifdef DEBUG
@@ -362,14 +391,14 @@ void emulate_instruction(chip8_t *chip8, const config_t *config)
     opcode_table[high_nibble](chip8, config);
 }
 
-void update_timers(chip8_t *chip8) {
+void update_timers(const sdl_t *sdl, chip8_t *chip8) {
     if(chip8->delay_timer > 0) chip8->delay_timer--;
     if(chip8->sound_timer > 0) {
         chip8->sound_timer--;
-        // TODO: Play sound
+        SDL_PauseAudioStreamDevice(sdl->stream);
     }
     else {
-        // TODO: Stop playing sound
+        SDL_ResumeAudioStreamDevice(sdl->stream);
     }
 }
 
@@ -630,7 +659,6 @@ void instr_EXA1(chip8_t *chip8, const config_t *config) {
 
 void instr_FXNN(chip8_t *chip8, const config_t *config) {
     (void)config;
-
     if(table_FXNN[chip8->inst.NN])
         table_FXNN[chip8->inst.NN](chip8, config);
 }
@@ -669,9 +697,8 @@ void instr_FX15(chip8_t *chip8, const config_t *config) {
 
 void instr_FX18(chip8_t *chip8, const config_t *config) {
     (void)config;
-
-    // 0xFX18: VX = sonud timer
-    chip8->V[chip8->inst.X] = chip8->sound_timer;
+    // 0xFX18: VX = sound timer
+    chip8->sound_timer = chip8->V[chip8->inst.X];
 }
 
 void instr_FX1E(chip8_t *chip8, const config_t *config) {

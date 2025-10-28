@@ -29,7 +29,7 @@ add_executable(Chip-8-emulator
     main.c
     chip8.c
     instruction_tables.c
-    screen.c
+    sdl.c
     app.c)
 
 # Link to the actual SDL3 library.
