@@ -63,8 +63,11 @@ int main(int argc, char **argv)
 
         SDL_Delay((uint32_t)(16.67f > time_elapsed ? 16.67f - time_elapsed : 0));
 
-        // Update window with changes every 60hz
-        update_screen(sdl, &config, &chip8);
+        if(chip8.draw) {
+            // Update window with changes every 60hz
+            update_screen(sdl, &config, &chip8);
+            chip8.draw = false;
+        }
 
         // Update delay and sound timers every 60hz
         update_timers(&sdl, &chip8);

@@ -417,6 +417,7 @@ void instr_00E0(chip8_t *chip8, const config_t *config) {
 
     // 0x00E0: Clear the screen
     memset(&chip8->display[0], false, sizeof(chip8->display));
+    chip8->draw = true; // Will update screen on next 60hz tick
 }
 
 void instr_00EE(chip8_t *chip8, const config_t *config) {
@@ -632,6 +633,7 @@ void instr_DXYN(chip8_t *chip8, const config_t *config) {
         if (++Y_coord >= config->window_height)
             break;
     }
+    chip8->draw = true; // Will update screen on next 60hz tick
 }
 
 void instr_EXNN(chip8_t *chip8, const config_t *config){
