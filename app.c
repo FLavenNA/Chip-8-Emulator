@@ -1,3 +1,7 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
 #include "app.h"
 
 // Set up initial emulator configuration from passed in arguments
@@ -21,8 +25,12 @@ bool set_config_from_args(config_t *config, int argc, char **argv)
 
     // Override defaults
     for (int i = 1; i < argc; i++)
-    {
-        (void)argv[i];
+    {   
+        if(strncmp(argv[i], "--scale-factor", strlen("--scale-factor")) == 0) {
+            // TODO: should probably add check for numeric
+            i++;
+            config->scale_factor = (uint32_t)strtoul(argv[i], NULL, 10);
+        }
     }
 
     return true;
