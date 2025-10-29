@@ -18,6 +18,7 @@ struct config
     uint32_t square_wave_freq; // Frequency of square wave sound e.g 440hz for middle A
     uint32_t audio_sample_rate;
     int16_t volume;            // How loud is sound
+    float color_lerp_rate;     // Amout to lerp colors by, between [0.1, 1.0]
 };
 
 enum emulator_state

@@ -46,24 +46,25 @@ struct chip8
 {
     emulator_state_t state;
     uint8_t ram[4096];
-    bool display[64 * 32]; // Emulator original resolution pixels
-    uint16_t stack[12];    // Subroutine stack
+    bool display[64 * 32];          // Emulator original resolution pixels
+    uint32_t pixel_color[64 * 32];  // CHIP8 pixel colors to draw
+    uint16_t stack[12];             // Subroutine stack
     uint16_t *stack_ptr;
-    uint8_t V[16];         // Data registers V0 - VF
-    uint16_t I;            // Index register
-    uint16_t PC;           // Program Counter
-    uint8_t sound_timer;   // Decrement at 60hz and plays tone when > 0z
-    uint8_t delay_timer;   // Decrement at 60hz when > 0
-    bool keypad[16];       // Hexadecimal keypad 0x0 - 0xF
-    const char *rom_name;  // Currently running ROM
-    instruction_t inst;    // Currently executing instruction
-    bool draw;             // Update the screen yes/no
+    uint8_t V[16];                  // Data registers V0 - VF
+    uint16_t I;                     // Index register
+    uint16_t PC;                    // Program Counter
+    uint8_t sound_timer;            // Decrement at 60hz and plays tone when > 0z
+    uint8_t delay_timer;            // Decrement at 60hz when > 0
+    bool keypad[16];                // Hexadecimal keypad 0x0 - 0xF
+    const char *rom_name;           // Currently running ROM
+    instruction_t inst;             // Currently executing instruction
+    bool draw;                      // Update the screen yes/no
 };
 
 typedef void (*instruction_func_t)(chip8_t *chip8, const config_t *config);
 
-bool init_chip8(chip8_t *chip8, const char rom_name[]);
-void handle_input(chip8_t *chip8);
+bool init_chip8(chip8_t *chip8, const config_t *config, const char rom_name[]);
+void handle_input(chip8_t *chip8, config_t *config);
 void handle_audio(chip8_t *chip8, const config_t *config, SDL_AudioStream *stream);
 #ifdef DEBUG
 void print_debug_info(chip8_t *chip8);

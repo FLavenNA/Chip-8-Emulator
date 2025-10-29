@@ -30,7 +30,7 @@ int main(int argc, char **argv)
     chip8_t chip8 = {0};
     const char *rom_name = argv[1];
     
-    if (!init_chip8(&chip8, rom_name))
+    if (!init_chip8(&chip8, &config, rom_name))
         exit(EXIT_FAILURE);
 
     // Initial screen clear to background color
@@ -43,7 +43,7 @@ int main(int argc, char **argv)
     while (chip8.state != QUIT)
     {
         // Handle user input
-        handle_input(&chip8);
+        handle_input(&chip8, &config);
         handle_audio(&chip8, &config, sdl.stream);
         
         if(chip8.state == PAUSED) continue;

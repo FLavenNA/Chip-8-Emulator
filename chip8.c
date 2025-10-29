@@ -3,7 +3,7 @@
 #include "sdl.h"
 #include "instruction_tables.h"
 
-bool init_chip8(chip8_t *chip8, const char rom_name[])
+bool init_chip8(chip8_t *chip8, const config_t *config, const char rom_name[])
 {
     const uint32_t entry_point = 0x200; // Chip8 roms will be loaded to 0x200
     const uint8_t font[] = {
@@ -64,10 +64,12 @@ bool init_chip8(chip8_t *chip8, const char rom_name[])
     chip8->PC = (uint16_t)entry_point; // Start program at entry point
     chip8->rom_name = rom_name;
     chip8->stack_ptr = &chip8->stack[0];
+    memset(&chip8->pixel_color[0], config->background_color, sizeof(chip8->pixel_color)); // Init pixels to background color
+
     return true;
 }
 
-void handle_input(chip8_t *chip8)
+void handle_input(chip8_t *chip8, config_t *config)
 {
     SDL_Event event;
 
@@ -96,7 +98,27 @@ void handle_input(chip8_t *chip8)
                 break;
             case SDLK_ASTERISK:
                 // '*': Reset CHIP8 machine for current rom
-                init_chip8(chip8, chip8->rom_name);
+                init_chip8(chip8, config, chip8->rom_name);
+                break;
+            case SDLK_J:
+                // 'J': Decrease color lerp rate
+                if(config->color_lerp_rate > 0.1)
+                    config->color_lerp_rate -= 0.1f;
+                break;
+            case SDLK_K:
+                // 'K': Increase color lerp rate
+                if(config->color_lerp_rate < 0.9)
+                    config->color_lerp_rate += 0.1f;
+                break;
+            case SDLK_O:
+                // 'O': Decrease volume
+                if(config->volume > 0)
+                    config->volume -= 500;
+                break;
+            case SDLK_P:
+                // 'P': Increase volume
+                if(config->volume < INT16_MAX)
+                    config->volume += 500;
                 break;
             default:
                 break;

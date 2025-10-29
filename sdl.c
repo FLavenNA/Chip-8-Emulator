@@ -68,7 +68,7 @@ void clear_screen(const sdl_t sdl, const config_t *config)
 }
 
 // Update window
-void update_screen(const sdl_t sdl, const config_t *config, const chip8_t *chip8) {
+void update_screen(const sdl_t sdl, const config_t *config, chip8_t *chip8) {
     SDL_FRect rect = {
         .x = 0,
         .y = 0,
@@ -76,12 +76,7 @@ void update_screen(const sdl_t sdl, const config_t *config, const chip8_t *chip8
         .h = (float)config->scale_factor,
     };
 
-    // Grap color values to draw
-    const uint8_t fg_r = (config->foreground_color >> 24) & 0xFF;
-    const uint8_t fg_g = (config->foreground_color >> 16) & 0xFF;
-    const uint8_t fg_b = (config->foreground_color >> 8) & 0xFF;
-    const uint8_t fg_a = (config->foreground_color >> 0) & 0xFF;
-
+    // Grap background color values to draw outlines
     const uint8_t bg_r = (config->background_color >> 24) & 0xFF;
     const uint8_t bg_g = (config->background_color >> 16) & 0xFF;
     const uint8_t bg_b = (config->background_color >> 8) & 0xFF;
@@ -97,9 +92,22 @@ void update_screen(const sdl_t sdl, const config_t *config, const chip8_t *chip8
 
         if(chip8->display[i]) {
             // If pixel is on, draw foreground color
-            SDL_SetRenderDrawColor(sdl.renderer, fg_r, fg_g, fg_b, fg_a);
+            if (chip8->pixel_color[i] != config->foreground_color) {
+                // Lerp towards foreground color
+                chip8->pixel_color[i] = color_lerp(chip8->pixel_color[i], 
+                                                   config->foreground_color, 
+                                                   config->color_lerp_rate); 
+            }
+
+            const uint8_t r = (chip8->pixel_color[i] >> 24) & 0xFF;
+            const uint8_t g = (chip8->pixel_color[i] >> 16) & 0xFF;
+            const uint8_t b = (chip8->pixel_color[i] >> 8) & 0xFF;
+            const uint8_t a = (chip8->pixel_color[i] >> 0) & 0xFF;
+
+            SDL_SetRenderDrawColor(sdl.renderer, r, g, b, a);
             SDL_RenderFillRect(sdl.renderer, &rect);
 
+            // TODO: Move this outside if/else
             // if user requested drawing pixel outlines
             if(config->pixel_outlines) {
                 SDL_SetRenderDrawColor(sdl.renderer, bg_r, bg_g, bg_b, bg_a);
@@ -108,7 +116,19 @@ void update_screen(const sdl_t sdl, const config_t *config, const chip8_t *chip8
 
         } else {
             // If not draw background color
-            SDL_SetRenderDrawColor(sdl.renderer, bg_r, bg_g, bg_b, bg_a);
+            if (chip8->pixel_color[i] != config->foreground_color) {
+                // Lerp towards background color
+                chip8->pixel_color[i] = color_lerp(chip8->pixel_color[i], 
+                                                   config->background_color, 
+                                                   config->color_lerp_rate); 
+            }
+
+            const uint8_t r = (chip8->pixel_color[i] >> 24) & 0xFF;
+            const uint8_t g = (chip8->pixel_color[i] >> 16) & 0xFF;
+            const uint8_t b = (chip8->pixel_color[i] >> 8) & 0xFF;
+            const uint8_t a = (chip8->pixel_color[i] >> 0) & 0xFF;
+
+            SDL_SetRenderDrawColor(sdl.renderer, r, g, b, a);
             SDL_RenderFillRect(sdl.renderer, &rect);
         }
     }
@@ -122,4 +142,23 @@ void final_cleanup(const sdl_t sdl)
     SDL_DestroyWindow(sdl.window);
     SDL_DestroyAudioStream(sdl.stream);
     SDL_Quit();
+}
+
+uint32_t color_lerp(const uint32_t start_color, const uint32_t end_color, const float t) {
+    const uint8_t s_r = (uint8_t)((start_color >> 24) & 0xFF);
+    const uint8_t s_g = (uint8_t)((start_color >> 16) & 0xFF);
+    const uint8_t s_b = (uint8_t)((start_color >> 8) & 0xFF);
+    const uint8_t s_a = (uint8_t)((start_color >> 0) & 0xFF);
+
+    const uint8_t e_r = (uint8_t)((end_color >> 24) & 0xFF);
+    const uint8_t e_g = (uint8_t)((end_color >> 16) & 0xFF);
+    const uint8_t e_b = (uint8_t)((end_color >> 8) & 0xFF);
+    const uint8_t e_a = (uint8_t)((end_color >> 0) & 0xFF);
+
+    const uint8_t ret_r = (uint8_t)(((1-t) * s_r) + (t * e_r));
+    const uint8_t ret_g = (uint8_t)(((1-t) * s_g) + (t * e_g));
+    const uint8_t ret_b = (uint8_t)(((1-t) * s_b) + (t * e_b));
+    const uint8_t ret_a = (uint8_t)(((1-t) * s_a) + (t * e_a));
+
+    return (ret_r << 24) | (ret_g << 16) | (ret_b << 8) | ret_a;
 }
