@@ -12,7 +12,4 @@ extern instruction_func_t table_8XYN[16];
 extern instruction_func_t table_EXNN[0x100];
 extern instruction_func_t table_FXNN[0x100];
 
-// (called once in chip8_init() to fill tables)
-void init_subtables(void);
-
 #endif

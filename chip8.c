@@ -25,6 +25,9 @@ bool init_chip8(chip8_t *chip8, const char rom_name[])
         0xF0, 0x80, 0xF0, 0x80, 0x80  // F
     };
 
+    // Initialize entire CHIP8 machine
+    memset(chip8, 0, sizeof(chip8_t));
+
     // Load font
     memcpy(&chip8->ram[0], font, sizeof(font));
 
@@ -81,7 +84,7 @@ void handle_input(chip8_t *chip8)
             {
             case SDLK_ESCAPE:
                 chip8->state = QUIT; // Exit window
-                return;
+                break;
             case SDLK_SPACE:
                 if (chip8->state == RUNNING)
                 {
@@ -90,6 +93,10 @@ void handle_input(chip8_t *chip8)
                 }
                 else
                     chip8->state = RUNNING; // Resume
+                break;
+            case SDLK_ASTERISK:
+                // '*': Reset CHIP8 machine for current rom
+                init_chip8(chip8, chip8->rom_name);
                 break;
             default:
                 break;
