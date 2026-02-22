@@ -7,3 +7,6 @@
 [submodule "test-roms/chip8-test-rom"]
 	path = test-roms/chip8-test-rom
 	url = https://github.com/corax89/chip8-test-rom
+[submodule "test-roms/chip8-test-suite"]
+	path = test-roms/chip8-test-suite
+	url = https://github.com/Timendus/chip8-test-suite
