@@ -18,3 +18,13 @@ git submodule update --init --recursive
     ./path_to_your.exe <rom_path>
 ### For Example
     .\build\Debug\Chip-8-emulator.exe '.\test-roms\chip8-roms\programs\IBM Logo.ch8'
+
+## Keys
+
+- **"Escape"**  : Exit Window
+- **"Space"**   : Pause
+- **"*"**       : Reset CHIP8 machine for current rom
+- **"J"**       : Decrease color lerp rate
+- **"K"**       : Increase color lerp rate
+- **"O"**       : Decrease volume
+- **"P"**       : Increase volume
