@@ -534,6 +534,7 @@ void instr_8XY1(chip8_t *chip8, const config_t *config) {
 
     // 0x8XY1: Sets VX to VX or VY. (bitwise OR operation)
     chip8->V[chip8->inst.X] |= chip8->V[chip8->inst.Y];
+    chip8->V[0xF] = 0; // Chip-8 ONLY QUIRK
 }
 
 void instr_8XY2(chip8_t *chip8, const config_t *config) {
@@ -541,6 +542,7 @@ void instr_8XY2(chip8_t *chip8, const config_t *config) {
 
     // 0x8XY2: Sets VX to VX and VY. (bitwise AND operation)
     chip8->V[chip8->inst.X] &= chip8->V[chip8->inst.Y];
+    chip8->V[0xF] = 0; // Chip-8 ONLY QUIRK
 }
 
 void instr_8XY3(chip8_t *chip8, const config_t *config) {
@@ -548,6 +550,7 @@ void instr_8XY3(chip8_t *chip8, const config_t *config) {
 
     // 0x8XY3: Sets VX to VX xor VY.
     chip8->V[chip8->inst.X] ^= chip8->V[chip8->inst.Y];
+    chip8->V[0xF] = 0; // Chip-8 ONLY QUIRK
 }
 
 void instr_8XY4(chip8_t *chip8, const config_t *config) {
