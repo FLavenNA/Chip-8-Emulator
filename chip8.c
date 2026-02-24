@@ -554,42 +554,50 @@ void instr_8XY4(chip8_t *chip8, const config_t *config) {
     (void)config;
 
     // 0x8XY4: Adds VY to VX. VF is set to 1 when there's an overflow, and to 0 when there is not.
-    if ((uint16_t)(chip8->V[chip8->inst.X] + chip8->V[chip8->inst.Y]) > 255)
-        chip8->V[0xF] = 1;
-
+    const bool carry = ((uint16_t)(chip8->V[chip8->inst.X] + chip8->V[chip8->inst.Y]) > 255);
+    
     chip8->V[chip8->inst.X] += chip8->V[chip8->inst.Y];
+    chip8->V[0xF] = carry;
 }
 
 void instr_8XY5(chip8_t *chip8, const config_t *config) {
     (void)config;
 
     // 0x8XY5: VY is subtracted from VX. VF is set to 0 when there's an underflow, and 1 when there is not. (i.e. VF set to 1 if VX >= VY and 0 if not)
-    chip8->V[0xF] = (chip8->V[chip8->inst.Y] <= chip8->V[chip8->inst.X]);
+    const bool carry = (chip8->V[chip8->inst.Y] <= chip8->V[chip8->inst.X]);
+    
     chip8->V[chip8->inst.X] -= chip8->V[chip8->inst.Y];
+    chip8->V[0xF] = carry;
 }
 
 void instr_8XY6(chip8_t *chip8, const config_t *config) {
     (void)config;
 
     // 0x8XY6: Shifts VX to the right by 1, then stores the least significant bit of VX prior to the shift into VF.
-    chip8->V[0xF] = chip8->V[chip8->inst.X] & 1;
+    const bool carry = chip8->V[chip8->inst.X] & 1;
+    
     chip8->V[chip8->inst.X] >>= 1;
+    chip8->V[0xF] = carry;
 }
 
 void instr_8XY7(chip8_t *chip8, const config_t *config) {
     (void)config;
 
     // 0x8XY7: VX is subtracted from VY. VF is set to 0 when there's an underflow, and 1 when there is not. (i.e. VF set to 1 if VY >= VX and 0 if not)
-    chip8->V[0xF] = (chip8->V[chip8->inst.X] <= chip8->V[chip8->inst.Y]);
+    const bool carry = (chip8->V[chip8->inst.X] <= chip8->V[chip8->inst.Y]);
+    
     chip8->V[chip8->inst.Y] -= chip8->V[chip8->inst.X];
+    chip8->V[0xF] = carry;
 }
 
 void instr_8XYE(chip8_t *chip8, const config_t *config) {
     (void)config;
 
     // 0x8XYE: Shifts VX to the left by 1, then sets VF to 1 if the most significant bit of VX prior to that shift was set, or to 0 if it was unset.
-    chip8->V[0xF] = (chip8->V[chip8->inst.X] & 0x80) >> 7;
+    const bool carry = (chip8->V[chip8->inst.X] & 0x80) >> 7;
+    
     chip8->V[chip8->inst.X] <<= 1;
+    chip8->V[0xF] = carry;
 }
 
 void instr_9XY0(chip8_t *chip8, const config_t *config) {
