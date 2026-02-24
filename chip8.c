@@ -733,19 +733,30 @@ void instr_FX07(chip8_t *chip8, const config_t *config) {
 void instr_FX0A(chip8_t *chip8, const config_t *config) {
     (void)config;
 
-    bool any_key_pressed = false;
+    static bool any_key_pressed = false;
+    static uint8_t key = 0xFF;
     // 0xFX0A: A key press is awaited, and then stored in VX (blocking operation, all instruction halted until next key event, delay and sound timers should continue processing).
-    for (uint8_t i = 0; i < sizeof(chip8->keypad); i++)
+    for (uint8_t i = 0; key == 0xFF && i < sizeof(chip8->keypad); i++)
     {
         if (chip8->keypad[i])
         {
-            chip8->V[chip8->inst.X] = i; // i = key (offset into keypad array)
+            key = i;
             any_key_pressed = true;
             break;
         }
     }
     if (!any_key_pressed)
         chip8->PC -= 2; // Keep getting the current opcode if no key has been pressed
+    else {
+        // A key has been pressed also wait until its released and then set it
+        if(chip8->keypad[key])     // Busy loop CHIP8 till its released
+            chip8->PC -= 2;
+        else {
+            chip8->V[chip8->inst.X] = key; // i = key (offset into keypad array)
+            key = 0xFF;
+            any_key_pressed = false;
+        }
+    }
 }
 
 void instr_FX15(chip8_t *chip8, const config_t *config) {
