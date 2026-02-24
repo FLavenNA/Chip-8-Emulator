@@ -28,3 +28,16 @@ git submodule update --init --recursive
 - **"K"**       : Increase color lerp rate
 - **"O"**       : Decrease volume
 - **"P"**       : Increase volume
+
+
+## Screenshots
+
+![Chip8 Logo From Chip8 Test Suite](screenshots/chip8-logo.png)
+
+![IBM Logo From Chip8 Test Suite](screenshots/chip8-ibm-logo.png)
+
+![Chip8 Quirks From Chip8 Test Suite](screenshots/chip8-quirks.png)
+
+![UFO Gameplay From Chip8 Roms Games](screenshots/ufo.gif)
+
+![Brick Gameplay From Chip8 Roms Games](screenshots/brick.gif)
