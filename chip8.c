@@ -580,9 +580,17 @@ void instr_8XY6(chip8_t *chip8, const config_t *config) {
     (void)config;
 
     // 0x8XY6: Shifts VX to the right by 1, then stores the least significant bit of VX prior to the shift into VF.
-    const bool carry = chip8->V[chip8->inst.X] & 1;
+    bool carry;
+    if(config->current_extension == CHIP8) {
+        carry = chip8->V[chip8->inst.Y] & 1; // USE VY
+        chip8->V[chip8->inst.X] = chip8->V[chip8->inst.Y] >> 1;
+    }
+    else
+    {
+        carry = chip8->V[chip8->inst.X] & 1; // USE VX
+        chip8->V[chip8->inst.X] >>= 1;       // USE VX
+    }
     
-    chip8->V[chip8->inst.X] >>= 1;
     chip8->V[0xF] = carry;
 }
 
@@ -600,9 +608,16 @@ void instr_8XYE(chip8_t *chip8, const config_t *config) {
     (void)config;
 
     // 0x8XYE: Shifts VX to the left by 1, then sets VF to 1 if the most significant bit of VX prior to that shift was set, or to 0 if it was unset.
-    const bool carry = (chip8->V[chip8->inst.X] & 0x80) >> 7;
-    
-    chip8->V[chip8->inst.X] <<= 1;
+    bool carry;
+    if(config->current_extension == CHIP8) {
+        carry = (chip8->V[chip8->inst.Y] & 0x80) >> 7;          // Use VY
+        chip8->V[chip8->inst.X] = chip8->V[chip8->inst.Y] << 1; // Set VX = VY;
+    }
+    else {
+        carry = (chip8->V[chip8->inst.X] & 0x80) >> 7;  // VX
+        chip8->V[chip8->inst.X] <<= 1;                  // Use VX
+    }
+
     chip8->V[0xF] = carry;
 }
 
