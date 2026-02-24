@@ -534,7 +534,8 @@ void instr_8XY1(chip8_t *chip8, const config_t *config) {
 
     // 0x8XY1: Sets VX to VX or VY. (bitwise OR operation)
     chip8->V[chip8->inst.X] |= chip8->V[chip8->inst.Y];
-    chip8->V[0xF] = 0; // Chip-8 ONLY QUIRK
+    if(config->current_extension == CHIP8)
+        chip8->V[0xF] = 0; // Chip-8 ONLY QUIRK
 }
 
 void instr_8XY2(chip8_t *chip8, const config_t *config) {
@@ -542,7 +543,8 @@ void instr_8XY2(chip8_t *chip8, const config_t *config) {
 
     // 0x8XY2: Sets VX to VX and VY. (bitwise AND operation)
     chip8->V[chip8->inst.X] &= chip8->V[chip8->inst.Y];
-    chip8->V[0xF] = 0; // Chip-8 ONLY QUIRK
+    if(config->current_extension == CHIP8)
+        chip8->V[0xF] = 0; // Chip-8 ONLY QUIRK
 }
 
 void instr_8XY3(chip8_t *chip8, const config_t *config) {
@@ -550,7 +552,8 @@ void instr_8XY3(chip8_t *chip8, const config_t *config) {
 
     // 0x8XY3: Sets VX to VX xor VY.
     chip8->V[chip8->inst.X] ^= chip8->V[chip8->inst.Y];
-    chip8->V[0xF] = 0; // Chip-8 ONLY QUIRK
+    if(config->current_extension == CHIP8)
+        chip8->V[0xF] = 0; // Chip-8 ONLY QUIRK
 }
 
 void instr_8XY4(chip8_t *chip8, const config_t *config) {
@@ -778,7 +781,11 @@ void instr_FX55(chip8_t *chip8, const config_t *config) {
     // Note: Could make this a config flag to use SCHIP or CHIP8 logic for I
     for (uint8_t i = 0; i <= chip8->inst.X; i++)
     {
-        chip8->ram[chip8->I + i] = chip8->V[i];
+        if(config->current_extension == CHIP8){
+            chip8->ram[chip8->I++] = chip8->V[i];
+        }
+        else
+            chip8->ram[chip8->I + i] = chip8->V[i];
     }
 }
 
@@ -789,6 +796,11 @@ void instr_FX65(chip8_t *chip8, const config_t *config) {
     // SCHIP does not increment I, CHIP8 does increment I;
     for (uint8_t i = 0; i <= chip8->inst.X; i++)
     {
-        chip8->V[i] = chip8->ram[chip8->I + i];
+        if(config->current_extension == CHIP8)
+        {
+            chip8->V[i] = chip8->ram[chip8->I++];
+        }
+        else
+            chip8->V[i] = chip8->ram[chip8->I + i];
     }
 }

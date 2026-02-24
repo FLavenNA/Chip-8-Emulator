@@ -20,7 +20,8 @@ bool set_config_from_args(config_t *config, int argc, char **argv)
         .audio_sample_rate = 44100,     // CD quality
         .square_wave_freq = 440,        // 440hz for middle A
         .volume = 3000,                 // INT16_MAX would be max volume
-        .color_lerp_rate = 0.7f          // Color lerp rate [0.1, 1.0]
+        .color_lerp_rate = 0.7f,        // Color lerp rate [0.1, 1.0]
+        .current_extension = CHIP8,     // Current extension/quirks
     };
 
     // Override defaults

@@ -6,5 +6,5 @@ typedef struct instruction instruction_t;
 typedef struct chip8 chip8_t;
 typedef struct config config_t;
 typedef enum emulator_state emulator_state_t;
-
+typedef enum extension extension_t;
 #endif
