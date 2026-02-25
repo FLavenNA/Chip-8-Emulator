@@ -41,6 +41,13 @@ struct instruction
     uint8_t Y;    // 4 bit register identifier
 };
 
+enum emulator_state
+{
+    QUIT = 0,
+    RUNNING,
+    PAUSED,
+};
+
 // Chip-8 machine object
 struct chip8
 {

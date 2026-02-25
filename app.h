@@ -6,6 +6,13 @@
 
 #include "type_defs.h"
 
+enum extension
+{
+    CHIP8 = 0,
+    SUPERCHIP,
+    X0CHIP,
+};
+
 struct config
 {
     uint32_t window_width;          // SDL Window Width
@@ -20,20 +27,6 @@ struct config
     int16_t volume;                 // How loud is sound
     float color_lerp_rate;          // Amout to lerp colors by, between [0.1, 1.0]
     extension_t current_extension;  // Current extension support for e.g CHIP8 vs SUPERCHIP
-};
-
-enum emulator_state
-{
-    QUIT = 0,
-    RUNNING,
-    PAUSED,
-};
-
-enum extension
-{
-    CHIP8 = 0,
-    SUPERCHIP,
-    X0CHIP,
 };
 
 // Set up initial emulator configuration from passed in arguments
