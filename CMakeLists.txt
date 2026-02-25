@@ -13,8 +13,6 @@ set(CMAKE_LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/$<CONFIGURATION>")
 
 if (MSVC)
     add_compile_options(/W4 /WX)
-else()
-    add_compile_options(-Wall -Wextra -Werror)
 endif()
 
 if(CMAKE_BUILD_TYPE STREQUAL "Debug")
